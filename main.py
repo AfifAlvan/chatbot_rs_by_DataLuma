@@ -7,7 +7,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from langchain_core.runnables import RunnableConfig
-from prompts import contextualize_q_system_prompt, rag_system_prompt
+from prompts import (
+    contextualize_q_system_prompt, rag_system_prompt, hospital_general_info_prompt,
+    doctor_schedule_prompt, administration_prompt, emergency_prompt,
+    bed_availability_prompt, pharmacy_prompt, patient_discharging_prompt, insurance_payment_prompt
+)
 import os
 import pdfplumber
 from langchain.docstore.document import Document
@@ -44,6 +48,7 @@ PDF_FOLDER = "./data"
 pdf_documents = [Document(**doc) for doc in load_pdfs_to_docs(PDF_FOLDER)]
 
 vectorstore.add_documents(pdf_documents)
+
 def combine_chat_history(chat_history, user_input):
     """Combine chat history and user input into a single string."""
     combined_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history])
@@ -61,13 +66,28 @@ async def get_response_from_chain(user_input, chat_history):
         retrieved_documents = retriever.get_relevant_documents(user_input)
         if not retrieved_documents:
             return "I'm sorry, I couldn't find an answer in the provided documents."
+        
         context = prepare_context(chat_history, retrieved_documents)
 
-
-        qa_prompt = ChatPromptTemplate.from_messages([
-            ("system", rag_system_prompt),  
-            ("human", "{context}")          
-        ])
+        # Determine the appropriate prompt based on the user input
+        if "jadwal dokter" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", doctor_schedule_prompt), ("human", "{context}")])
+        elif "informasi rumah sakit" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", hospital_general_info_prompt), ("human", "{context}")])
+        elif "administrasi" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", administration_prompt), ("human", "{context}")])
+        elif "darurat" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", emergency_prompt), ("human", "{context}")])
+        elif "kamar" in user_input.lower() or "tempat tidur" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", bed_availability_prompt), ("human", "{context}")])
+        elif "apotek" in user_input.lower() or "obat" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", pharmacy_prompt), ("human", "{context}")])
+        elif "keluar rumah sakit" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", patient_discharging_prompt), ("human", "{context}")])
+        elif "asuransi" in user_input.lower() or "pembayaran" in user_input.lower():
+            qa_prompt = ChatPromptTemplate.from_messages([("system", insurance_payment_prompt), ("human", "{context}")])
+        else:
+            qa_prompt = ChatPromptTemplate.from_messages([("system", rag_system_prompt), ("human", "{context}")])
 
         question_answer_chain = create_stuff_documents_chain(llm=chat_model, prompt=qa_prompt)
         rag_chain = create_retrieval_chain(retriever, question_answer_chain)
