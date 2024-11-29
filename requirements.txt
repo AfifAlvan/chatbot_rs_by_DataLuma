@@ -7,5 +7,3 @@ chroma==0.2.0
 pdfplumber==0.11.4
 sentence-transformers==3.3.1
 python-dotenv==1.0.0
-pysqlite3==0.4.6
-pysqlite-binary==0.5.1
