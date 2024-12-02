@@ -19,8 +19,8 @@ from langchain.docstore.document import Document
 
 OPENING_MESSAGE = "Welcome in DataLUMA! How may I assist you today?"
 EMBEDDING = "all-MiniLM-L6-v2"
-RETRIEVED_CONTEXT = 4
-
+RETRIEVED_CONTEXT = 1
+# 4
 try:
     chat_model = ChatOllama(model="llama3.2:1b ", temperature=0.8, num_predict=256)
 except Exception as e:
@@ -29,7 +29,10 @@ except Exception as e:
 embedding_model = HuggingFaceEmbeddings(model_name=EMBEDDING)
 vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embedding_model)
 retriever = vectorstore.as_retriever(search_kwargs={"k": RETRIEVED_CONTEXT})
-
+# retriever = vectorstore.as_retriever(search_kwargs={
+#     "k": RETRIEVED_CONTEXT,
+#     "score_threshold": 0.65  # Pastikan pustaka vectorstore mendukung parameter ini
+# })
 def load_pdfs_to_docs(folder_path):
     """Load PDF files from a folder and convert them into text documents."""
     documents = []
