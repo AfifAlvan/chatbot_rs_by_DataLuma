@@ -3,7 +3,8 @@
 
 Result : 
 
-![image](https://github.com/user-attachments/assets/c92801ab-098b-4380-a538-9598bd51bd71)
+![image](https://github.com/user-attachments/assets/10565dba-6663-4456-b95f-498a4cd02cac)
+
 
 
 Link Demo : https://chatbotrsbydataluma.streamlit.app/
